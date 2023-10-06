@@ -4,10 +4,7 @@
 # Copyright (C) 2013-2014 Village Telco Ltd.
 # Copyright (C) 2013-2014 Dimitar Penev <dpn at switchvoice dot com>
 # Copyright (C) 2014-2015 Vittorio Gambaletta <openwrt@vittgam.net>
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
-#
+
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -24,8 +21,6 @@ PKG_RELEASE:=1
 #PKG_SOURCE_VERSION:=put_commit_id_here
 #PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 
-PKG_LICENSE:=GPLv2, except for Silicon Labs binary blob
-PKG_LICENSE_FILES:=si3217x/LICENSE
 PKG_MAINTAINER:=Vittorio Gambaletta <openwrt@vittgam.net>
 
 include $(INCLUDE_DIR)/package.mk
@@ -37,7 +32,7 @@ define KernelPackage/dragino2-si3217x
   FILES:= $(PKG_BUILD_DIR)/proslic-api/dragino2_si3217x_proslic_api.$(LINUX_KMOD_SUFFIX) \
           $(PKG_BUILD_DIR)/si3217x/dragino2_si3217x.$(LINUX_KMOD_SUFFIX)
   AUTOLOAD:=$(call AutoProbe,dragino2_si3217x_proslic_api)
-  DEPENDS:=@(TARGET_ar71xx_generic_GSR||TARGET_ar71xx_generic_DRAGINO2||TARGET_ar71xx_generic_DEVICE_dragino2) @GPIO_SUPPORT +kmod-spi-bitbang +kmod-spi-gpio +kmod-dahdi
+  DEPENDS:=@(TARGET_ath79_generic_DEVICE_nayar_gsr||TARGET_ar71xx_generic_GSR||TARGET_ar71xx_generic_DRAGINO2||TARGET_ar71xx_generic_DEVICE_dragino2) @GPIO_SUPPORT +kmod-spi-bitbang +kmod-spi-gpio +kmod-dahdi
 endef
 
 define KernelPackage/dragino2-si3217x/description
@@ -50,7 +45,7 @@ define Package/dragino2-si3217x
   SUBMENU:=Telephony
   TITLE:=DRAGINO v2 si3217x FXS Daughter Board userspace support
   VERSION:=$(PKG_VERSION)-$(PKG_RELEASE)
-  DEPENDS:=@(TARGET_ar71xx_generic_GSR||TARGET_ar71xx_generic_DRAGINO2||TARGET_ar71xx_generic_DEVICE_dragino2) +kmod-dragino2-si3217x +dahdi-cfg +kmod-dahdi-echocan-oslec
+  DEPENDS:=@(TARGET_ath79_generic_DEVICE_nayar_gsr||TARGET_ar71xx_generic_GSR||TARGET_ar71xx_generic_DRAGINO2||TARGET_ar71xx_generic_DEVICE_dragino2) +kmod-dragino2-si3217x +dahdi-cfg +kmod-dahdi-echocan-oslec
 endef
 
 define Package/dragino2-si3217x/description
@@ -65,7 +60,10 @@ define Build/Prepare
 endef
 
 define Build/Compile
-	$(MAKE) $(KERNEL_MAKEOPTS) SUBDIRS="$(PKG_BUILD_DIR)" modules
+  $(KERNEL_MAKE) $(KERNEL_MAKEOPTS)\
+		M="$(PKG_BUILD_DIR)" \
+    SUBDIRS="$(PKG_BUILD_DIR)" \
+		modules
 endef
 
 define Package/dragino2-si3217x/conffiles

@@ -16,7 +16,7 @@
 #include "defs.h"
 #include "proslic_time_glue.h"
 
-int debug = 0;
+int debug = 1;
 
 static char *opermode = "FCC";
 static int _opermode = 0;
@@ -57,10 +57,11 @@ int si3217x_proslic_init()
 		return -EEXIST;
 
 	ProObj = si3217x_blobwrapper_proslic_init(_opermode, ctrl_ReadRegisterWrapper, ctrl_WriteRegisterWrapper,
-					ctrl_ReadRAMWrapper, ctrl_WriteRAMWrapper, ctrl_ResetWrapper,
-					time_DelayWrapper, time_TimeElapsedWrapper, time_GetTimeWrapper);
+											  ctrl_ReadRAMWrapper, ctrl_WriteRAMWrapper, ctrl_ResetWrapper,
+											  time_DelayWrapper, time_TimeElapsedWrapper, time_GetTimeWrapper);
 
-	if (!ProObj) {
+	if (!ProObj)
+	{
 		printk(KERN_ERR PFX "ProSLIC API initialization failed\n");
 		return -ENODEV;
 	}
@@ -70,7 +71,8 @@ int si3217x_proslic_init()
 
 void si3217x_proslic_free(void)
 {
-	if (ProObj) {
+	if (ProObj)
+	{
 		si3217x_blobwrapper_proslic_free(ProObj);
 		ProObj = NULL;
 	}
@@ -93,7 +95,7 @@ int si3217x_get_hook_status(void)
 static int __init si3217x_init(void)
 {
 	int error;
-
+	
 	printk(KERN_INFO PFX DRV_DESC " version " DRV_VERSION "\n");
 	printk(KERN_INFO PFX "Copyright (C) 2013-2014 Village Telco Ltd.\n");
 	printk(KERN_INFO PFX "Copyright (C) 2013-2014 Dimitar Penev <dpn at switchvoice dot com>\n");
@@ -107,23 +109,17 @@ static int __init si3217x_init(void)
 		_opermode = 2;
 	else if (!strcmp(opermode, "BT3"))
 		_opermode = 3;
-	else {
+	else
+	{
 		printk(KERN_ERR PFX "Error: The opermode parameter should be one of: FCC, TBR21, TN12, BT3\n");
 		return -ENODEV;
 	}
 
 	printk_dbg(PFX "Selected operation mode %s\n", opermode);
 
-	error = si3217x_spi_platform_device_init();
-	if (error < 0) {
-		printk(KERN_ERR PFX "Failed to register the si3217x SPI platform device driver\n");
-		return error;
-	}
-
 	error = spi_register_driver(&si3217x_spi_driver);
 	if (error < 0) {
 		printk(KERN_ERR PFX "Failed to register the si3217x SPI protocol driver\n");
-		si3217x_spi_platform_device_exit();
 		si3217x_proslic_free();
 		return error;
 	}
@@ -136,10 +132,7 @@ static void __exit si3217x_exit(void)
 	printk_dbg(PFX "Unloading module...\n");
 
 	si3217x_dfxs_spidev_callback(NULL);
-
 	spi_unregister_driver(&si3217x_spi_driver);
-	si3217x_spi_platform_device_exit();
-
 	si3217x_proslic_free();
 }
 

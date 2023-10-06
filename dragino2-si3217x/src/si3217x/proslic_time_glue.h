@@ -18,9 +18,10 @@
 #include <linux/time.h>
 #include <linux/delay.h>
 
-static struct timespec diff(struct timespec *start, struct timespec *end)
+
+static struct timespec64 diff(struct timespec64 *start, struct timespec64 *end)
 {
-	struct timespec temp;
+	struct timespec64 temp;
 	if ((end->tv_nsec-start->tv_nsec)<0) {
 		temp.tv_sec = end->tv_sec-start->tv_sec-1;
 		temp.tv_nsec = 1000000000+end->tv_nsec-start->tv_nsec;
@@ -43,11 +44,11 @@ static int time_DelayWrapper(void *hTimer, int timeInMs)
 
 static int time_TimeElapsedWrapper(void *hTimer, void *startTime, int *timeInMs)
 {
-	struct timespec now, time_diff;
+	struct timespec64 now, time_diff;
 	UNREFERENCED_PARAMETER(hTimer);
 
-	ktime_get_ts(&now);
-	time_diff=diff(&now, (struct timespec *)startTime);
+	ktime_get_ts64(&now);
+	time_diff=diff(&now, (struct timespec64 *)startTime);
 
 	*timeInMs = (int)((time_diff.tv_sec)*1000+(time_diff.tv_nsec)/1000);
 
@@ -56,12 +57,12 @@ static int time_TimeElapsedWrapper(void *hTimer, void *startTime, int *timeInMs)
 
 static int time_GetTimeWrapper(void *hTimer, void *time)
 {
-	struct timespec now, *time_ptr;
+	struct timespec64 now, *time_ptr;
 	UNREFERENCED_PARAMETER(hTimer);
 
-	ktime_get_ts(&now);
+	ktime_get_ts64(&now);
 
-	time_ptr = (struct timespec *)time;
+	time_ptr = (struct timespec64 *)time;
 
 	time_ptr->tv_sec = now.tv_sec;
 	time_ptr->tv_nsec = now.tv_nsec;

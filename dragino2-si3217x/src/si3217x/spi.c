@@ -232,8 +232,17 @@ int si3217x_reset(int state)
 
 static int si3217x_spi_probe(struct spi_device *spidev)
 {
+	int ret;
 	spi = spidev;
-	si3217x_dfxs_spidev_callback(spidev);
+
+	spi->irq = 27;	// GPIO_27
+	spi->mode = 3;
+
+	ret = spi_setup(spi);
+	if (ret < 0)
+		return ret;
+
+	si3217x_dfxs_spidev_callback(spi);
 	return 0;
 }
 
@@ -244,10 +253,19 @@ static int si3217x_spi_remove(struct spi_device *spidev)
 	return 0;
 }
 
+
+static struct of_device_id si3217x_ids[] = {
+	{
+		.compatible = "dragino,si3217x",
+	}, {}
+};
+MODULE_DEVICE_TABLE(of, si3217x_ids);
+
 struct spi_driver si3217x_spi_driver = {
 	.driver = {
 		.name	= "dragino2_si3217x",
-		.owner	= THIS_MODULE
+		.owner	= THIS_MODULE,
+		.of_match_table = si3217x_ids
 	},
 	.probe	= si3217x_spi_probe,
 	.remove	= si3217x_spi_remove
