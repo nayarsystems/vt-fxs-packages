@@ -378,76 +378,17 @@ static irqreturn_t ar9331_slic_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static int init_interrupts(void)
+static int init_interrupts(struct spi_device *spidev)
 {
 	volatile uint32_t temp;
 	int ret;
-	struct irq_desc* desc;
-	int virq;
-	struct device_node *sp;
-	/* Some common initialization */
+	struct irq_desc* desc;	/* Some common initialization */
 
-	sp = of_find_compatible_node(NULL,NULL,"qca,ar7240-misc-intc");
-	if (!sp) {
-		printk(KERN_EMERG "Failed to get interrupt handler\n");
-		return -EBUSY;
-	}
-	printk(KERN_INFO "sp->name : %s sp->full_name : %s\n",sp->name,sp->full_name);
-
-	virq = irq_of_parse_and_map(sp, 3);
-	printk(KERN_INFO "VIRQ : %d", virq);
-
-	// 	printk("failed to get VIRQ 7");
-	// 	virq = irq_of_parse_and_map(sp, 15);
-	// 	if (virq) {
-	// 		printk("failed to get VIRQ 15");
-	// 		virq = irq_of_parse_and_map(sp, 0);
-	// 		if (virq) {
-	// 			printk("failed to get VIRQ 0");
-	// 		}
-	// 	}
-	// }
-
-	tdmdata.irq_mbox = virq; /* ATH79_MISC_IRQ_DMA */
+	tdmdata.irq_mbox = spidev->irq; /* ATH79_MISC_IRQ_DMA */
 	tdmdata.irq_mbox_name = "ar9331-slic";
 
-	// Watchdog
-	desc = irq_to_desc(12);
-	if(desc != NULL) {
-		printk	("DESC WATCHDOG irq %d, DESC hwirq %lu\n", desc->irq_data.irq, desc->irq_data.hwirq);
-		if (desc->irq_data.chip == NULL) {
-			printk	("NO CHIP");
-		}
-		else {
-			printk	("Chip name -> %s", desc->irq_data.chip->name);
-		}
-	}
 
-	// GPIO
-	desc = irq_to_desc(10);
-	if(desc != NULL) {
-		printk	("DESC GPIO irq %d, DESC hwirq %lu\n", desc->irq_data.irq, desc->irq_data.hwirq);
-		if (desc->irq_data.chip == NULL) {
-			printk	("NO CHIP");
-		}
-		else {
-			printk	("Chip name -> %s", desc->irq_data.chip->name);
-		}
-	}
-
-	// DMA
-	desc = irq_to_desc(15);
-	if(desc != NULL) {
-		printk	("DESC DMA irq %d, DESC hwirq %lu\n", desc->irq_data.irq, desc->irq_data.hwirq);
-		if (desc->irq_data.chip == NULL) {
-			printk	("NO CHIP");
-		}
-		else {
-			printk	("Chip name -> %s", desc->irq_data.chip->name);
-		}
-	}
-
-	// DMA
+	// DM
 	desc = irq_to_desc(tdmdata.irq_mbox);
 	if(desc != NULL) {
 		printk	("DESC DMA irq %d, DESC hwirq %lu\n", desc->irq_data.irq, desc->irq_data.hwirq);
@@ -469,8 +410,6 @@ static int init_interrupts(void)
 		printk(" - code %d , EIO %d , EINVAL %d\n", ret, EIO, EINVAL);
 		return -EBUSY;
 	}
-	return -EBUSY;
-
 	/* Enable global MBOX_INTERRUPTs */
 	temp = AR9331_REG_READ(AR9331_RST_MISC_INTERRUPT_MASK);
 	AR9331_REG_WRITE(AR9331_RST_MISC_INTERRUPT_MASK, temp | AR9331_RST_MISC_INTERRUPT_MBOX);
@@ -484,18 +423,18 @@ static void enable_slic(void)
 	volatile uint32_t temp;
 
 	/* enable SLIC and interrupts */
+	printk_dbg(PFX "enable SLIC and interrupts\n");
 	temp = AR9331_REG_READ(AR9331_SLIC_CTRL);
 	AR9331_REG_WRITE(AR9331_SLIC_CTRL, temp | AR9331_SLIC_CTRL_SLIC_EN | AR9331_SLIC_CTRL_INTR_EN);
-
 	/* Enable SLIC on GPIO18..22, SLIC data in and out are on separate pins. */
+	printk_dbg(PFX "Enable SLIC on GPIO18..22, SLIC data in and out are on separate pins.\n");
 	temp = AR9331_REG_READ(AR9331_GPIO_FUNCTION_2);
 	AR9331_REG_WRITE(AR9331_GPIO_FUNCTION_2, (temp & ~AR9331_GPIO_SLIC_DIO_MUX_EN) | AR9331_GPIO_SLIC_18_22 | AR9331_GPIO_SLIC_EN);
 	// temp = AR9331_REG_READ(AR9331_GPIO_FUNCTION_2);
-
 	/* Start the RX/TX DMA */
+	printk_dbg(PFX "Start the TX/RX DMA\n");
 	AR9331_REG_WRITE(AR9331_SLIC_MBOX_DMA_RX_CONTROL, AR9331_SLIC_MBOX_DMA_START);
 	AR9331_REG_WRITE(AR9331_SLIC_MBOX_DMA_TX_CONTROL, AR9331_SLIC_MBOX_DMA_START);
-
 	/* printk_dbg(PFX "SLIC has been enabled\n"); */ /* This print stops the interrupts !!!!!!!!!!!!!!!!!!!!! */
 }
 
@@ -591,7 +530,7 @@ int si3217x_tdm_init(struct spi_device *spidev)
 	enable_slic();
 
 	/* printk after this point stops TX interrupt !!!!!!???? */
-	err = init_interrupts();
+	err = init_interrupts(spidev);
 	if (err)
 	{
 		printk(KERN_ERR PFX "Failed to initialize interrupts\n");

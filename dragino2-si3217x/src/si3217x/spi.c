@@ -15,6 +15,8 @@
 #include <linux/err.h>
 #include <linux/init.h>
 #include <linux/spi/spi.h>
+#include <linux/of_irq.h>
+
 
 #include "defs.h"
 #include "spi.h"
@@ -235,7 +237,9 @@ static int si3217x_spi_probe(struct spi_device *spidev)
 	int ret;
 	spi = spidev;
 
-	spi->irq = 27;	// GPIO_27
+	spi->irq = of_irq_get(spidev->dev.of_node, 0);
+	printk("SPI IRQ %d\n", spi->irq);
+
 	spi->mode = 3;
 
 	ret = spi_setup(spi);
