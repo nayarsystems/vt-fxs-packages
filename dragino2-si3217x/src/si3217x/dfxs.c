@@ -402,17 +402,17 @@ static int dfxs_init_one(struct spi_device *spidev)
 		return -EIO;
 	}
 
-	if (si3217x_proslic_init()) {
-		printk(KERN_ERR PFX "Unable to initialize si3217x hardware\n");
-		dahdi_unregister_device(wc.ddev);
-		return -EIO;
-	}
+	// if (si3217x_proslic_init()) {
+	// 	printk(KERN_ERR PFX "Unable to initialize si3217x hardware\n");
+	// 	dahdi_unregister_device(wc.ddev);
+	// 	return -EIO;
+	// }
 
-	/* Put the SLIC in Forward Active mode */
-	wc.linefeed_status = 1;
-	schedule_work(&work_set_hook_status);
+	// /* Put the SLIC in Forward Active mode */
+	// wc.linefeed_status = 1;
+	// schedule_work(&work_set_hook_status);
 
-	schedule_delayed_work(&work_hook_check, msecs_to_jiffies(20));
+	// schedule_delayed_work(&work_hook_check, msecs_to_jiffies(20));
 
 	wc.initialized = 1;
 
@@ -433,7 +433,7 @@ static void dfxs_release(void)
 
 	dahdi_unregister_device(wc.ddev);
 
-	si3217x_proslic_free();
+	// si3217x_proslic_free();
 
 	si3217x_tdm_exit();
 
