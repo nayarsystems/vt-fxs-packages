@@ -236,11 +236,9 @@ static int si3217x_spi_probe(struct spi_device *spidev)
 {
 	int ret;
 	spi = spidev;
-
 	spi->irq = of_irq_get(spidev->dev.of_node, 0);
-	printk("SPI IRQ %d\n", spi->irq);
-
-	spi->mode = 3;
+	printk("SPI IRQ (SHOULD BE 27) %d\n", spi->irq);
+	spi->mode = SPI_MODE_3;
 
 	ret = spi_setup(spi);
 	if (ret < 0)

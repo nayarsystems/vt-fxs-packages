@@ -384,7 +384,8 @@ static int init_interrupts(struct spi_device *spidev)
 	int ret;
 	struct irq_desc* desc;	/* Some common initialization */
 
-	tdmdata.irq_mbox = spidev->irq; /* ATH79_MISC_IRQ_DMA */
+	tdmdata.irq_mbox = of_irq_get(spidev->dev.of_node, 1);; /* ATH79_MISC_IRQ_DMA */
+	printk("SPI IRQ (SHOULD BE 14) %d\n", tdmdata.irq_mbox);
 	tdmdata.irq_mbox_name = "ar9331-slic";
 
 
@@ -399,8 +400,6 @@ static int init_interrupts(struct spi_device *spidev)
 			printk	("Chip name -> %s", desc->irq_data.chip->name);
 		}
 	}
-
-	
 
 	ret = request_irq(tdmdata.irq_mbox, ar9331_slic_interrupt, 0, tdmdata.irq_mbox_name, &tdmdata);
 	/* hook the interrupt */
