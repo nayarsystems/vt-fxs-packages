@@ -360,6 +360,8 @@ static const struct dahdi_span_ops dfxs_span_ops = {
 
 static int dfxs_init_one(struct spi_device *spidev)
 {
+	// struct spi_message msg;
+
 	printk_dbg(PFX "Initializing si3217x TDM driver...\n");
 
 	if (si3217x_tdm_init(spidev) < 0) {
@@ -402,11 +404,12 @@ static int dfxs_init_one(struct spi_device *spidev)
 		return -EIO;
 	}
 
-	// if (si3217x_proslic_init()) {
-	// 	printk(KERN_ERR PFX "Unable to initialize si3217x hardware\n");
-	// 	dahdi_unregister_device(wc.ddev);
-	// 	return -EIO;
-	// }
+
+	if (si3217x_proslic_init()) {
+		printk(KERN_ERR PFX "Unable to initialize si3217x hardware\n");
+		dahdi_unregister_device(wc.ddev);
+		return -EIO;
+	}
 
 	/* Put the SLIC in Forward Active mode */
 	wc.linefeed_status = 1;
@@ -432,7 +435,7 @@ static void dfxs_release(void)
 	cancel_delayed_work(&work_reset_oht);
 
 	dahdi_unregister_device(wc.ddev);
-	// si3217x_proslic_free();
+	si3217x_proslic_free();
 
 	si3217x_tdm_exit();
 

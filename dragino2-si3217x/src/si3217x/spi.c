@@ -29,17 +29,18 @@ static struct spi_device *spi = NULL;
  */
 int si3217x_read_reg(u8 address, u8 *val)
 {
-	u8 ctrl_byte = SPI_CID0 | SPI_READ | SPI_REG;
+	int ret;
+	u8 ctrl_byte = SPI_CID0 | SPI_READ | SPI_REG; // 60
 	struct spi_message msg;
-	struct spi_transfer tctrl = {
+	struct spi_transfer tctrl = {	// 60
 		.len		= 1,
 		.cs_change	= 1,
 	};
-	struct spi_transfer taddr = {
+	struct spi_transfer taddr = {	// ADDR
 		.len		= 1,
 		.cs_change	= 1,
 	};
-	struct spi_transfer tval = {
+	struct spi_transfer tval = {	// 0
 		.len		= 1,
 		.cs_change	= 0,
 	};
@@ -58,7 +59,11 @@ int si3217x_read_reg(u8 address, u8 *val)
 	tval.rx_buf = val;
 	spi_message_add_tail(&tval, &msg);
 
-	return spi_sync(spi, &msg);
+	ret = spi_sync(spi, &msg);
+
+	printk("READ REG: %u VAL: %u | RET %d", address, *val, ret);
+
+	return ret;
 }
 
 /*
@@ -67,17 +72,18 @@ int si3217x_read_reg(u8 address, u8 *val)
  */
 int si3217x_write_reg(u8 address, u8 val)
 {
-	u8 ctrl_byte = SPI_CID0 | SPI_WRITE | SPI_REG;
+	int ret;
+	u8 ctrl_byte = SPI_CID0 | SPI_WRITE | SPI_REG;	// 20
 	struct spi_message msg;
-	struct spi_transfer tctrl = {
+	struct spi_transfer tctrl = {	// 20
 		.len		= 1,
 		.cs_change	= 1,
 	};
-	struct spi_transfer taddr = {
+	struct spi_transfer taddr = {	// ADDR
 		.len		= 1,
 		.cs_change	= 1,
 	};
-	struct spi_transfer tval = {
+	struct spi_transfer tval = {	// VALOR
 		.len		= 1,
 		.cs_change	= 0
 	};
@@ -94,7 +100,11 @@ int si3217x_write_reg(u8 address, u8 val)
 	tval.tx_buf = &val;
 	spi_message_add_tail(&tval, &msg);
 
-	return spi_sync(spi, &msg);
+	ret = spi_sync(spi, &msg);
+
+	printk("WRITE REG: %u VAL: %u | RET %d", address, val, ret);
+
+	return ret;
 }
 
 /*
@@ -157,6 +167,7 @@ int si3217x_read_ram(u16 address, u32 *val)
  */
 int si3217x_write_ram(u16 address, u32 val)
 {
+	
 	u8 dataByte;
 	u8 addrByte;
 	u32 userTimeout = USER_TIMEOUT_VAL; /* User defined timeout counter */
@@ -235,7 +246,11 @@ int si3217x_reset(int state)
 static int si3217x_spi_probe(struct spi_device *spidev)
 {
 	int ret;
+	u8 val;
 	spi = spidev;
+	
+	printk("PROBING SI3217x, master dev = %s\n", dev_name(&spi->master->dev));
+
 	spi->irq = of_irq_get(spidev->dev.of_node, 0);
 	printk("SPI IRQ (SHOULD BE 27) %d\n", spi->irq);
 	spi->mode = SPI_MODE_3;
@@ -244,7 +259,22 @@ static int si3217x_spi_probe(struct spi_device *spidev)
 	if (ret < 0)
 		return ret;
 
+	val = 0;
+	printk("ORIDOG ACTIVADO");
+	si3217x_read_reg(0, &val);
+
+	printk("irq %d, chipselect %u, setup mode %d, %s%s%s%s%u bits/w, %u Hz max\n",
+	spi->irq,
+	spi->chip_select, 
+	(int) (spi->mode & (SPI_CPOL | SPI_CPHA)),
+	(spi->mode & SPI_CS_HIGH) ? "cs_high, " : "",
+	(spi->mode & SPI_LSB_FIRST) ? "lsb, " : "",
+	(spi->mode & SPI_3WIRE) ? "3wire, " : "",
+	(spi->mode & SPI_LOOP) ? "loopback, " : "",
+	spi->bits_per_word, spi->max_speed_hz);
+
 	si3217x_dfxs_spidev_callback(spi);
+
 	return 0;
 }
 

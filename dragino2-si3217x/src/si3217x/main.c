@@ -133,7 +133,7 @@ static void __exit si3217x_exit(void)
 
 	si3217x_dfxs_spidev_callback(NULL);
 	spi_unregister_driver(&si3217x_spi_driver);
-	// si3217x_proslic_free();
+	si3217x_proslic_free();
 }
 
 module_init(si3217x_init);
