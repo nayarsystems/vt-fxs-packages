@@ -61,7 +61,7 @@ int si3217x_read_reg(u8 address, u8 *val)
 
 	ret = spi_sync(spi, &msg);
 
-	printk("READ REG: %u VAL: %u | RET %d", address, *val, ret);
+	// printk("READ REG: %u VAL: %u | RET %d", address, *val, ret);
 
 	return ret;
 }
@@ -102,7 +102,7 @@ int si3217x_write_reg(u8 address, u8 val)
 
 	ret = spi_sync(spi, &msg);
 
-	printk("WRITE REG: %u VAL: %u | RET %d", address, val, ret);
+	// printk("WRITE REG: %u VAL: %u | RET %d", address, val, ret);
 
 	return ret;
 }
@@ -246,11 +246,9 @@ int si3217x_reset(int state)
 static int si3217x_spi_probe(struct spi_device *spidev)
 {
 	int ret;
-	u8 val;
+	// u8 val;
 	spi = spidev;
 	
-	printk("PROBING SI3217x, master dev = %s\n", dev_name(&spi->master->dev));
-
 	spi->irq = of_irq_get(spidev->dev.of_node, 0);
 	printk("SPI IRQ (SHOULD BE 27) %d\n", spi->irq);
 	spi->mode = SPI_MODE_3;
@@ -259,19 +257,19 @@ static int si3217x_spi_probe(struct spi_device *spidev)
 	if (ret < 0)
 		return ret;
 
-	val = 0;
-	printk("ORIDOG ACTIVADO");
-	si3217x_read_reg(0, &val);
+	// val = 0;
+	// printk("ORIDOG ACTIVADO");
+	// si3217x_read_reg(0, &val);
 
-	printk("irq %d, chipselect %u, setup mode %d, %s%s%s%s%u bits/w, %u Hz max\n",
-	spi->irq,
-	spi->chip_select, 
-	(int) (spi->mode & (SPI_CPOL | SPI_CPHA)),
-	(spi->mode & SPI_CS_HIGH) ? "cs_high, " : "",
-	(spi->mode & SPI_LSB_FIRST) ? "lsb, " : "",
-	(spi->mode & SPI_3WIRE) ? "3wire, " : "",
-	(spi->mode & SPI_LOOP) ? "loopback, " : "",
-	spi->bits_per_word, spi->max_speed_hz);
+	// printk("irq %d, chipselect %u, setup mode %d, %s%s%s%s%u bits/w, %u Hz max\n",
+	// spi->irq,
+	// spi->chip_select, 
+	// (int) (spi->mode & (SPI_CPOL | SPI_CPHA)),
+	// (spi->mode & SPI_CS_HIGH) ? "cs_high, " : "",
+	// (spi->mode & SPI_LSB_FIRST) ? "lsb, " : "",
+	// (spi->mode & SPI_3WIRE) ? "3wire, " : "",
+	// (spi->mode & SPI_LOOP) ? "loopback, " : "",
+	// spi->bits_per_word, spi->max_speed_hz);
 
 	si3217x_dfxs_spidev_callback(spi);
 

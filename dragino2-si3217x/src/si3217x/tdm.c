@@ -272,7 +272,6 @@ static int init_slic_mbox(struct spi_device *spidev)
 	AR9331_REG_WRITE(AR9331_SLIC_MBOX_FIFO_RESET, 3);
 
 	printk(KERN_ERR PFX "SLIC MBOX engine has been initialized");
-	// printk_dbg(PFX "SLIC MBOX engine has been initialized\n");
 
 	return 0;
 }
@@ -382,24 +381,10 @@ static int init_interrupts(struct spi_device *spidev)
 {
 	volatile uint32_t temp;
 	int ret;
-	struct irq_desc* desc;	/* Some common initialization */
 
 	tdmdata.irq_mbox = of_irq_get(spidev->dev.of_node, 1);; /* ATH79_MISC_IRQ_DMA */
 	printk("SPI IRQ (SHOULD BE 14) %d\n", tdmdata.irq_mbox);
 	tdmdata.irq_mbox_name = "ar9331-slic";
-
-
-	// DM
-	desc = irq_to_desc(tdmdata.irq_mbox);
-	if(desc != NULL) {
-		printk	("DESC DMA irq %d, DESC hwirq %lu\n", desc->irq_data.irq, desc->irq_data.hwirq);
-		if (desc->irq_data.chip == NULL) {
-			printk	("NO CHIP");
-		}
-		else {
-			printk	("Chip name -> %s", desc->irq_data.chip->name);
-		}
-	}
 
 	ret = request_irq(tdmdata.irq_mbox, ar9331_slic_interrupt, 0, tdmdata.irq_mbox_name, &tdmdata);
 	/* hook the interrupt */
@@ -422,16 +407,13 @@ static void enable_slic(void)
 	volatile uint32_t temp;
 
 	/* enable SLIC and interrupts */
-	printk_dbg(PFX "enable SLIC and interrupts\n");
 	temp = AR9331_REG_READ(AR9331_SLIC_CTRL);
 	AR9331_REG_WRITE(AR9331_SLIC_CTRL, temp | AR9331_SLIC_CTRL_SLIC_EN | AR9331_SLIC_CTRL_INTR_EN);
 	/* Enable SLIC on GPIO18..22, SLIC data in and out are on separate pins. */
-	printk_dbg(PFX "Enable SLIC on GPIO18..22, SLIC data in and out are on separate pins.\n");
 	temp = AR9331_REG_READ(AR9331_GPIO_FUNCTION_2);
 	AR9331_REG_WRITE(AR9331_GPIO_FUNCTION_2, (temp & ~AR9331_GPIO_SLIC_DIO_MUX_EN) | AR9331_GPIO_SLIC_18_22 | AR9331_GPIO_SLIC_EN);
 	// temp = AR9331_REG_READ(AR9331_GPIO_FUNCTION_2);
 	/* Start the RX/TX DMA */
-	printk_dbg(PFX "Start the TX/RX DMA\n");
 	AR9331_REG_WRITE(AR9331_SLIC_MBOX_DMA_RX_CONTROL, AR9331_SLIC_MBOX_DMA_START);
 	AR9331_REG_WRITE(AR9331_SLIC_MBOX_DMA_TX_CONTROL, AR9331_SLIC_MBOX_DMA_START);
 	/* printk_dbg(PFX "SLIC has been enabled\n"); */ /* This print stops the interrupts !!!!!!!!!!!!!!!!!!!!! */
@@ -502,7 +484,6 @@ static const struct proc_ops tdm_proc_ops = {
 int si3217x_tdm_init(struct spi_device *spidev)
 {
 	int err;
-	printk(KERN_ERR PFX "si3217x_tdm_init");
 
 	memset(&tdmdata, 0, sizeof(struct tdm_device));
 
@@ -512,8 +493,6 @@ int si3217x_tdm_init(struct spi_device *spidev)
 		printk(KERN_ERR PFX "Failed to create proc entry\n");
 		return -ENOMEM;
 	}
-
-	printk(KERN_ERR PFX "pasa proc_create");
 
 	init_slic();
 
