@@ -13,7 +13,7 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=dragino2-si3217x
-PKG_VERSION:=0.3
+PKG_VERSION:=0.3.1
 PKG_RELEASE:=1
 
 # Remove the Build/Prepare section below if using Git.
