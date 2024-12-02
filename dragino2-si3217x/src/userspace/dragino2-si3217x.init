@@ -84,6 +84,9 @@ EOF
 loadzone = ${tonezone:-us}
 defaultzone = ${tonezone:-us}
 
+txgain = ${txgain:-0}
+rxgain = ${rxgain:-0}
+
 fxo${signalling:-ks} = 1
 mulaw = 1
 
